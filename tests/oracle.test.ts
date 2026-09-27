@@ -434,6 +434,23 @@ describe('OracleModule', () => {
   });
 
   describe('getPriceDeviation', () => {
+    it('throws InsufficientLiquidityError when reserves are zero even with a valid TWAP window', async () => {
+      const pairAddress = 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC';
+      let callCount = 0;
+      const responses = [
+        { price0CumulativeLast: 100000000n, price1CumulativeLast: 200000000n, blockTimestampLast: 1000 },
+        { price0CumulativeLast: 400000000n, price1CumulativeLast: 800000000n, blockTimestampLast: 1000 + MIN_TWAP_WINDOW_SECONDS },
+      ];
+      const client = mockClient({
+        getCumulativePrices: jest.fn().mockImplementation(() => Promise.resolve(responses[Math.min(callCount++, 1)])),
+        getReserves: jest.fn().mockResolvedValue({ reserve0: 0n, reserve1: 10000000000n }),
+      });
+      const oracle = new OracleModule(client);
+      await oracle.observe(pairAddress);
+
+      await expect(oracle.getPriceDeviation(pairAddress)).rejects.toThrow(InsufficientLiquidityError);
+    });
+
     it('returns null when TWAP is not yet available', async () => {
       const pairAddress = 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC';
 

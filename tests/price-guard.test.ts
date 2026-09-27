@@ -3,6 +3,10 @@ import { MissingPriceFeedError, PriceDeviationError, StaleOracleError, Validatio
 import { TradeType } from '../src/types/common';
 import { RedStonePayload, SwapWithPriceGuardRequest } from '../src/types/swap';
 import { verifyRedStonePayload, estimateUsdValue } from '../src/utils/redstone';
+// The fixture signs its own payload with a test ed25519 key. The SDK does not
+// verify RedStone signatures itself, so `hasValidFixtureSignature` only proves
+// the fixture is internally consistent; it is not end-to-end signature
+// verification of the guard.
 import { hasValidFixtureSignature, makeSignedRedstonePayload } from './fixtures/redstone-signed-payload';
 
 // ---------------------------------------------------------------------------
